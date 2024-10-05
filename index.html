@@ -48,48 +48,62 @@
     } from 'https://unpkg.com/petite-vue?module'
 
     const todoList = reactive({
-      list: [{
-        text: 'Buy carrots.',
-        done: false,
-        id: 0,
-      }, {
-        text: 'Prepare the chicken wings. Chop them into drums and flats.',
-        done: true,
-        id: 1,
-      }],
+      list: {
+        0: {
+          text: 'Buy carrots.',
+          id: 0,
+        },
+        1: {
+          text: 'Prepare the chicken wings. Chop them into drums and flats.',
+          id: 1,
+        },
+        2: {
+          text: 'Walk the dog.',
+          id: 2,
+        }
+      },
+      listNotDone: [0, 1],
+      listDone: [2],
+      toggleDone(id) {
+        const done = this.listDone.includes(id);
+
+        // Assuming here that we're switching state.
+        // i.e.  isDone !== this.done
+        const [newList, oldList] = done ? [todoList.listNotDone, todoList.listDone] : [todoList.listDone, todoList.listNotDone];
+
+        let ix = oldList.findIndex(i => i === id);
+        if (ix === -1) throw new Error("Cannot set 'done' value " + `done: ${done}, newlist:  ${newList}, oldlist: ${oldList}`);
+        oldList.splice(ix, 1);
+
+        newList.unshift(id);
+        saveToLocalStorage(); // Save changes
+      },
       getNextId() {
         let i = 0;
-        while (this.list.some(item => item.id === i)) i++
+        while (Object.values(this.list).some(item => item.id === i)) i++
         return i;
       },
       addTodo(text) {
         if (text === "") return
-        this.list.unshift({
+        const newId = this.getNextId();
+        this.list[newId] = ({
           text: text,
-          done: false,
-          id: this.getNextId()
+          id: newId
         })
-      },
-      moveTodoToEnd(id) {
-        let ix = this.getTodoIxById(id);
-        let t = this.list[ix];
-        this.list.splice(ix, 1);
-        this.list.push(t);
-      },
-      getTodoIxById(id) {
-        let ix = this.list.findIndex(item => item.id === id);
-        if (ix === -1) {
-          throw new Error('Something went wrong finding the item' + id)
-        }
-        return ix
+        this.listNotDone.unshift(newId)
+        saveToLocalStorage(); // Save changes
       },
       deleteTodo(id) {
-        let ix = this.list.findIndex(item => item.id === id);
+        const sl = this.listDone.includes(id) ? this.listDone : this.listNotDone;
+
+        const ix = sl.findIndex(i => i === id);
+
         if (ix === -1) {
-          console.error('something went wrong deleting the item' + id)
+          console.error('something went wrong deleting the item ' + id)
           return;
         }
-        this.list.splice(ix, 1);
+        sl.splice(ix, 1);
+        saveToLocalStorage(); // Save changes
       }
     })
 
@@ -99,20 +113,18 @@
         get todo() {
           return {
             get text() {
-              return props.todo.text
+              return todoList.list[this.id].text
             },
             get done() {
-              return props.todo.done
+              return todoList.listDone.includes(this.id);
             },
             get id() {
-              return props.todo.id
+              return props.id
             },
-            set done(newval) {
-              const this_ix = todoList.getTodoIxById(props.todo.id)
-              todoList.list[this_ix].done = newval
-              if (newval) {
-                todoList.moveTodoToEnd(props.todo.id)
-              }
+            set done(isDone) {
+              if (this.done === isDone) return;
+
+              todoList.toggleDone(this.id);
             }
           }
         },
@@ -131,10 +143,34 @@
       todoList.addTodo(val)
     }
 
+    function saveToLocalStorage() {
+      localStorage.setItem('todoList', JSON.stringify({
+        list: todoList.list,
+        listNotDone: todoList.listNotDone,
+        listDone: todoList.listDone
+      }));
+    }
+
+    function loadFromLocalStorage() {
+      const savedData = localStorage.getItem('todoList');
+      if (savedData) {
+        const parsedData = JSON.parse(savedData);
+        todoList.list = parsedData.list;
+        todoList.listNotDone = parsedData.listNotDone;
+        todoList.listDone = parsedData.listDone;
+      }
+    }
+    loadFromLocalStorage(); // Load data when the page is loaded
+
+    function rem() {
+      localStorage.removeItem('todoList')
+    }
+
     createApp({
       todoList,
       onSubmit,
-      TaskComponent
+      TaskComponent,
+      rem
     }).mount()
   </script>
 
@@ -157,7 +193,7 @@
         <h1 class="font-bold text-4xl">
           Steven's TODO App!
         </h1>
-        <aside class="absolute sm:right-[-150px] sm:top-[50px] text-lg caveat-1 sm:transition-transform sm:animate-[grow_2s_ease-in-out_alternate_infinite]">
+        <aside v-scope class="absolute sm:right-[-150px] sm:top-[50px] text-lg caveat-1 sm:transition-transform sm:animate-[grow_2s_ease-in-out_alternate_infinite]" @click="rem">
           Built with Petite-Vue!
         </aside>
       </div>
@@ -175,7 +211,8 @@
           </button>
         </form>
         <ul class="mt-10 md:mt-20">
-          <li v-for="(item, index) in todoList.list" :key="item.id" v-scope="TaskComponent({todo: item})" class="mt-5 first:mt-0">
+          <li v-for="(id) in todoList.listNotDone" :key="id" v-scope="TaskComponent({id})" class="mt-5 first:mt-0">
+          <li v-for="(id) in todoList.listDone" :key="id" v-scope="TaskComponent({id})" class="mt-5" :class="{'first:mt-0': todoList.listNotDone.length === 0}">
         </ul>
       </div>
     </div>
@@ -189,9 +226,7 @@
               'line-through text-success bg-transparent border-solid border-neutral border-l border-t border-b hover:bg-base-200': todo.done,
               'border-none': !todo.done 
             }">
-        <p class="uppercase text-wrap break-words w-full leading-8">
-          {{ todo.text }}
-        </p>
+        <p class="uppercase text-wrap break-words w-full leading-8" v-text="todo.text">
       </button>
       <button @click="todoList.deleteTodo(todo.id)" class="btn btn-error h-auto w-[50px] join-item" :class="{
               'btn-disabled': !todo.done
