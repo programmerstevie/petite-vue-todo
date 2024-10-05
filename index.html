@@ -4,6 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color">
 
   <script>
     const savedTheme = localStorage.getItem('theme') || 'dark';
@@ -166,12 +167,27 @@
       }
     }
 
+    function updateMetaThemeColor() {
+      const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+
+      // Get the computed background color from the body element
+      const bgColor = getComputedStyle(document.documentElement).backgroundColor;
+
+      console.log(bgColor)
+
+      // Update the meta theme-color with the extracted background color
+      metaThemeColor.setAttribute('content', bgColor);
+    }
+
     function onThemeChange(event) {
       const isDarkMode = !event.target.checked;
       const theme = isDarkMode ? 'dark' : 'bumblebee';
 
       document.documentElement.setAttribute('data-theme', theme);
       localStorage.setItem('theme', theme); // Save the theme to localStorage
+
+      updateMetaThemeColor(); // Update meta theme-color dynamically based on new theme
+
     }
 
     function loadThemeFromLocalStorage() {
