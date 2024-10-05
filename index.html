@@ -174,7 +174,7 @@
             Add Task
           </button>
         </form>
-        <ul class="mt-32">
+        <ul class="mt-10 md:mt-20">
           <li v-for="(item, index) in todoList.list" :key="item.id" v-scope="TaskComponent({todo: item})" class="mt-5 first:mt-0">
         </ul>
       </div>
