@@ -193,7 +193,7 @@
         <h1 class="font-bold text-4xl">
           Steven's TODO App!
         </h1>
-        <aside v-scope class="absolute sm:right-[-150px] sm:top-[50px] text-lg caveat-1 sm:transition-transform sm:animate-[grow_2s_ease-in-out_alternate_infinite]" @click="rem">
+        <aside class="absolute sm:right-[-150px] sm:top-[50px] text-lg caveat-1 sm:transition-transform sm:animate-[grow_2s_ease-in-out_alternate_infinite]">
           Built with Petite-Vue!
         </aside>
       </div>
@@ -223,7 +223,7 @@
       <button @click="todo.done = !todo.done" class="btn flex items-center py-5 justify-center join-item
             w-[75vw] sm:w-[400px] md:w-[600px] lg:w-[900px]
             h-auto" :class="{
-              'line-through text-success bg-transparent border-solid border-neutral border-l border-t border-b hover:bg-base-200': todo.done,
+              'line-through text-success bg-transparent border-solid border-base-300 border-l border-t border-b hover:bg-base-200': todo.done,
               'border-none': !todo.done 
             }">
         <p class="uppercase text-wrap break-words w-full leading-8" v-text="todo.text">
