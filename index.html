@@ -160,24 +160,38 @@
         todoList.listDone = parsedData.listDone;
       }
     }
-    loadFromLocalStorage(); // Load data when the page is loaded
 
-    function rem() {
-      localStorage.removeItem('todoList')
+    function onThemeChange(event) {
+      const isDarkMode = !event.target.checked;
+      const theme = isDarkMode ? 'dark' : 'light';
+
+      document.documentElement.setAttribute('data-theme', theme);
+      localStorage.setItem('theme', theme); // Save the theme to localStorage
     }
+
+    function loadThemeFromLocalStorage() {
+      const savedTheme = localStorage.getItem('theme') || 'dark'; // Default to 'dark' if not set
+      document.documentElement.setAttribute('data-theme', savedTheme);
+
+      const themeCheckbox = document.querySelector('.theme-controller');
+      themeCheckbox.checked = savedTheme === 'light' ? false : true; // Update the checkbox based on the theme
+    }
+
+    loadFromLocalStorage(); // Load data when the page is loaded
+    loadThemeFromLocalStorage(); // Load the theme from localStorage
 
     createApp({
       todoList,
       onSubmit,
       TaskComponent,
-      rem
+      onThemeChange
     }).mount()
   </script>
 
   <header class="">
     <nav class="navbar shadow-lg bg-base-100 flex justify-center">
       <div class="w-[75vw] sm:w-[400px] md:w-[600px] lg:w-[950px]">
-        <label class="swap swap-rotate">
+        <label v-scope class="swap swap-rotate" @change="onThemeChange">
           <input type="checkbox" value="bumblebee" class="theme-controller" />
           <span class="material-icons swap-on">
             light_mode
@@ -217,6 +231,9 @@
       </div>
     </div>
   </main>
+
+  <footer class="h-40">
+  </footer>
 
   <template id="task-template">
     <div class="rounded flex min-h-28 overflow-visible join">
