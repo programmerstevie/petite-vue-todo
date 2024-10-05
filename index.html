@@ -1,9 +1,14 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <script>
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+  </script>
 
   <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.12/dist/full.min.css" rel="stylesheet" type="text/css" />
   <script src="https://cdn.tailwindcss.com"></script>
@@ -163,7 +168,7 @@
 
     function onThemeChange(event) {
       const isDarkMode = !event.target.checked;
-      const theme = isDarkMode ? 'dark' : 'light';
+      const theme = isDarkMode ? 'dark' : 'bumblebee';
 
       document.documentElement.setAttribute('data-theme', theme);
       localStorage.setItem('theme', theme); // Save the theme to localStorage
@@ -174,7 +179,7 @@
       document.documentElement.setAttribute('data-theme', savedTheme);
 
       const themeCheckbox = document.querySelector('.theme-controller');
-      themeCheckbox.checked = savedTheme === 'light' ? false : true; // Update the checkbox based on the theme
+      themeCheckbox.checked = savedTheme === 'bumblebee' ? true : false; // Update the checkbox based on the theme
     }
 
     loadFromLocalStorage(); // Load data when the page is loaded
